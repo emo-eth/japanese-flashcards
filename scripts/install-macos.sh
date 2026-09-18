@@ -49,13 +49,14 @@ launchctl bootstrap "gui/$(id -u)" "$PLIST_DST"
 launchctl enable "gui/$(id -u)/$LABEL" >/dev/null 2>&1 || true
 launchctl kickstart -k "gui/$(id -u)/$LABEL"
 
-for i in {1..20}; do
-  if curl -fsS --max-time 1 "http://$HOST:$PORT/healthz" | grep -q ok; then
+BIND=127.0.0.1
+for i in {1..50}; do
+  if curl -fsS --max-time 1 "http://$BIND:$PORT/healthz" >/dev/null; then
     break
   fi
   sleep 0.2
 done
-curl -fsS --max-time 2 "http://$HOST:$PORT/healthz" | grep -q ok || die "local server did not become healthy"
+curl -fsS --max-time 2 "http://$BIND:$PORT/healthz" | grep -q ok || die "local server did not become healthy on $BIND:$PORT"
 
 command -v tailscale >/dev/null || die "tailscale not found"
 tailscale status >/dev/null || die "tailscale is not up"

@@ -26,6 +26,8 @@ Binds to loopback only. Tailscale Serve publishes HTTPS on the same port.
 ./scripts/install-macos.sh
 ```
 
+Live: https://studio.tail55aa7b.ts.net:8877/
+
 The installer never runs `tailscale serve reset` or Funnel, and it rolls back only the `:8877` handler if the Serve diff is wrong.
 
 ## Tests

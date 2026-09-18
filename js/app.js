@@ -5,7 +5,6 @@ import {
   createSession,
   currentCard,
   markKnown,
-  remainingCount,
   reveal,
   startNextRound,
   submitTyped,
@@ -55,7 +54,7 @@ function startSession(script) {
   const cards = cardsFor(script, selectedFor(script));
   state.session = { ...createSession(cards), script };
   state.input = "";
-  state.chartOpen = cards.length === 0;
+  state.chartOpen = true;
 }
 
 function applySession(next, result) {
@@ -175,11 +174,10 @@ function focusAnswer() {
 }
 
 function statsBar(session) {
-  const remaining = remainingCount(session);
   const totalSeen = session.seenCount;
   return `
     <div class="stats">
-      <div><span class="label">Remaining</span><strong>${remaining}</strong></div>
+      <div><span class="label">Remaining</span><strong>${session.queue.length}</strong></div>
       <div><span class="label">Accuracy</span><strong>${totalSeen ? accuracyPct(session) + "%" : "—"}</strong></div>
       <div><span class="label">Missed</span><strong>${session.incorrectCount}</strong></div>
       <div><span class="label">Round</span><strong>${session.round}</strong></div>
@@ -267,7 +265,7 @@ function studyHtml(script) {
     ${nav(script)}
     ${statsBar(session)}
     <section class="study">
-      <button class="card ${revealed ? "revealed" : ""} ${session.lastGrade === "incorrect" ? "miss" : ""}" id="flip" type="button" aria-label="${revealed ? "Answer showing" : "Show answer"}">
+      <button class="card ${revealed ? "revealed" : ""} ${revealed && session.lastGrade === "incorrect" ? "miss" : ""}" id="flip" type="button" aria-label="${revealed ? "Answer showing" : "Show answer"}">
         <span class="face front"><span class="kana">${card.kana}</span></span>
         <span class="face back">
           <span class="kana small">${card.kana}</span>
@@ -288,7 +286,7 @@ function studyHtml(script) {
             : `<button class="primary" type="submit">Check</button>`
         }
       </form>
-      <p class="hint">${revealed ? "Space / tap flipped already. 1 knew · 2 missed · Enter continues as missed." : "Enter checks · Space or tap flips without typing."}</p>
+      <p class="hint">${revealed ? (session.lastGrade === "incorrect" ? "Enter continues — this card returns in the retry round." : "1 knew · 2 missed · Enter continues as missed.") : "Enter checks · Space or tap flips without typing."}</p>
       <div class="toolbar">
         <button class="text-btn" id="speak" type="button">Play sound</button>
         <button class="text-btn" id="toggle-chart" type="button">${state.chartOpen ? "Hide chart" : "Edit deck"}</button>
@@ -391,7 +389,7 @@ function bindStudy(script) {
     focusAnswer();
   });
   document.getElementById("toggle-chart")?.addEventListener("click", () => {
-    state.chartOpen = __omp_shell("state.chartOpen;")
+    state.chartOpen = !state.chartOpen;
     render();
   });
   document.getElementById("speak")?.addEventListener("click", () => {
