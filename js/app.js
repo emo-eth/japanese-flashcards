@@ -382,7 +382,10 @@ function studyHtml(script) {
         <p class="kicker">Pass ${session.pass}</p>
         <h1>${session.missed.length} to retry</h1>
         <p>Only the misses, shuffled. Repeat until this pile is empty, then the whole deck comes back.</p>
-        <button class="primary" id="retry">Retry missed · Space</button>
+        <div class="actions">
+          <button class="primary" id="retry">Retry missed · Space</button>
+          <a class="secondary" href="${hrefFor(script)}">Rearrange deck</a>
+        </div>
       </section>
     `;
   }
@@ -394,7 +397,10 @@ function studyHtml(script) {
         <p class="kicker">Misses cleared</p>
         <h1>Full deck again</h1>
         <p>Done when a whole-deck pass has zero misses.</p>
-        <button class="primary" id="next-pass">Whole deck · Space</button>
+        <div class="actions">
+          <button class="primary" id="next-pass">Whole deck · Space</button>
+          <a class="secondary" href="${hrefFor(script)}">Rearrange deck</a>
+        </div>
       </section>
     `;
   }
@@ -410,7 +416,7 @@ function studyHtml(script) {
         <div class="actions">
           ${nextColumnButton(script)}
           <button class="${next ? "secondary" : "primary"}" id="again" type="button">Same deck again</button>
-          <a class="secondary" href="${hrefFor(script)}">Edit deck</a>
+          <a class="secondary" href="${hrefFor(script)}">Rearrange deck</a>
         </div>
       </section>
     `;
