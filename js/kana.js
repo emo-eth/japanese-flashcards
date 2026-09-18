@@ -103,5 +103,11 @@ export function cardsFor(script, groupIds) {
 }
 
 export function defaultGroupIds(script) {
-  return GROUPS[script].filter((g) => g.section === "gojuon").map((g) => g.id);
+  const first = GROUPS[script][0];
+  return first ? [first.id] : [];
+}
+
+export function nextUnselectedGroup(script, selectedIds) {
+  const selected = new Set(selectedIds);
+  return GROUPS[script].find((group) => !selected.has(group.id)) ?? null;
 }

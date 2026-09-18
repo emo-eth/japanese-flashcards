@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { cardsFor, GROUPS } from "../js/kana.js";
+import { cardsFor, GROUPS, nextUnselectedGroup } from "../js/kana.js";
 import {
   acceptedAnswers,
   confirmMiss,
@@ -9,6 +9,7 @@ import {
   markKnown,
   normalizeRomaji,
   remainingCount,
+  startNextPass,
   startNextRound,
   submitTyped,
 } from "../js/engine.js";
@@ -45,9 +46,13 @@ describe("kana deck", () => {
     const ids = GROUPS.katakana.filter((g) => g.section === "gojuon").map((g) => g.id);
     expect(cardsFor("katakana", ids)).toHaveLength(46);
   });
+  test("next unselected group is first missing column", () => {
+    expect(nextUnselectedGroup("hiragana", ["h-a"])?.id).toBe("h-ka");
+    expect(nextUnselectedGroup("hiragana", GROUPS.hiragana.map((g) => g.id))).toBeNull();
+  });
 });
 
-describe("retry missed rounds", () => {
+describe("college study loop", () => {
   const cards = [
     { id: "1", kana: "あ", romaji: "a" },
     { id: "2", kana: "い", romaji: "i" },
@@ -61,26 +66,57 @@ describe("retry missed rounds", () => {
     expect(remainingCount(session)).toBe(1);
   });
 
-  test("misses become the next round until they are known", () => {
+  test("a clean full pass completes without retries", () => {
+    let session = createSession([cards[0]], { rng: () => 0 });
+    session = submitTyped(session, "a");
+    expect(session.status).toBe("complete");
+    expect(session.pass).toBe(1);
+  });
+
+  test("misses retry until clear, then the whole deck runs again", () => {
     let session = createSession(cards, { rng: () => 0 });
     const first = currentCard(session);
     session = submitTyped(session, "nope");
     expect(session.revealed).toBe(true);
     session = confirmMiss(session);
     session = markKnown(session);
-    expect(session.status).toBe("round-complete");
+    expect(session.status).toBe("retry-ready");
     expect(session.missed.map((c) => c.id)).toEqual([first.id]);
+    expect(session.passMisses).toBe(1);
+
     session = startNextRound(session);
-    expect(session.round).toBe(2);
+    expect(session.phase).toBe("retry");
+    expect(session.retryRound).toBe(1);
     expect(session.queue).toHaveLength(1);
     expect(currentCard(session).id).toBe(first.id);
+    session = markKnown(session);
+    expect(session.status).toBe("pass-ready");
+
+    session = startNextPass(session);
+    expect(session.status).toBe("active");
+    expect(session.phase).toBe("full");
+    expect(session.pass).toBe(2);
+    expect(session.queue).toHaveLength(2);
+    expect(session.passMisses).toBe(0);
+
+    session = markKnown(session);
     session = markKnown(session);
     expect(session.status).toBe("complete");
   });
 
-  test("clearing the whole pile completes", () => {
+  test("a miss during retry keeps that card in the next retry round", () => {
     let session = createSession([cards[0]], { rng: () => 0 });
-    session = submitTyped(session, "a");
-    expect(session.status).toBe("complete");
+    session = submitTyped(session, "nope");
+    session = confirmMiss(session);
+    expect(session.status).toBe("retry-ready");
+    session = startNextRound(session);
+    session = submitTyped(session, "nope");
+    session = confirmMiss(session);
+    expect(session.status).toBe("retry-ready");
+    expect(session.missed).toHaveLength(1);
+    session = startNextRound(session);
+    expect(session.retryRound).toBe(2);
+    session = markKnown(session);
+    expect(session.status).toBe("pass-ready");
   });
 });

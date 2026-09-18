@@ -1,15 +1,15 @@
-import { GROUPS, SECTIONS, cardsFor, defaultGroupIds } from "./kana.js";
+import { GROUPS, SECTIONS, cardsFor, defaultGroupIds, glyphsIn, nextUnselectedGroup } from "./kana.js";
 import {
-  accuracyPct,
   confirmMiss,
   createSession,
   currentCard,
   markKnown,
   reveal,
+  startNextPass,
   startNextRound,
   submitTyped,
 } from "./engine.js";
-import { loadGroups, recordResult, saveGroups } from "./storage.js";
+import { clearedGroups, loadGroups, recordCleanPass, recordResult, saveGroups } from "./storage.js";
 
 const app = document.getElementById("app");
 const INSTALL = { deferred: null };
@@ -50,6 +50,13 @@ function persistSelection(script) {
   saveGroups(script, [...selectedFor(script)]);
 }
 
+function addGroup(script, id) {
+  selectedFor(script).add(id);
+  persistSelection(script);
+  startSession(script);
+  render();
+}
+
 function startSession(script) {
   const cards = cardsFor(script, selectedFor(script));
   state.session = { ...createSession(cards), script };
@@ -62,6 +69,9 @@ function applySession(next, result) {
   if (finished && result) {
     const card = currentCard(state.session);
     if (card) recordResult(card.id, result === "correct");
+  }
+  if (next.status === "complete" && state.session?.status !== "complete") {
+    recordCleanPass(state.script, [...selectedFor(state.script)]);
   }
   state.session = next;
   state.input = "";
@@ -120,9 +130,16 @@ function onKeydown(event) {
   if (!session) return;
   const inInput = event.target && event.target.id === "answer";
 
-  if (session.status === "round-complete" && (event.key === "Enter" || event.key === " ")) {
+  if (session.status === "retry-ready" && (event.key === "Enter" || event.key === " ")) {
     event.preventDefault();
     state.session = startNextRound(session);
+    render();
+    focusAnswer();
+    return;
+  }
+  if (session.status === "pass-ready" && (event.key === "Enter" || event.key === " ")) {
+    event.preventDefault();
+    state.session = startNextPass(session);
     render();
     focusAnswer();
     return;
@@ -173,20 +190,25 @@ function focusAnswer() {
   });
 }
 
+function pileLabel(session) {
+  if (session.phase === "retry") return `Retry ${session.retryRound}`;
+  return "Deck";
+}
+
 function statsBar(session) {
-  const totalSeen = session.seenCount;
   return `
     <div class="stats">
       <div><span class="label">Remaining</span><strong>${session.queue.length}</strong></div>
-      <div><span class="label">Accuracy</span><strong>${totalSeen ? accuracyPct(session) + "%" : "—"}</strong></div>
-      <div><span class="label">Missed</span><strong>${session.incorrectCount}</strong></div>
-      <div><span class="label">Round</span><strong>${session.round}</strong></div>
+      <div><span class="label">Missed</span><strong>${session.passMisses}</strong></div>
+      <div><span class="label">Pass</span><strong>${session.pass}</strong></div>
+      <div><span class="label">Pile</span><strong>${pileLabel(session)}</strong></div>
     </div>
   `;
 }
 
 function chartHtml(script) {
   const selected = selectedFor(script);
+  const cleared = clearedGroups(script);
   return SECTIONS.map((section) => {
     const groups = GROUPS[script].filter((g) => g.section === section.id);
     const allOn = groups.every((g) => selected.has(g.id));
@@ -202,8 +224,9 @@ function chartHtml(script) {
           ${groups
             .map((group) => {
               const on = selected.has(group.id);
+              const done = Boolean(cleared[group.id]);
               return `
-                <button class="col ${on ? "on" : ""}" data-group="${group.id}" aria-pressed="${on}">
+                <button class="col ${on ? "on" : ""} ${done ? "cleared" : ""}" data-group="${group.id}" aria-pressed="${on}">
                   ${group.slots
                     .map((slot) =>
                       slot
@@ -221,40 +244,64 @@ function chartHtml(script) {
   }).join("");
 }
 
+function nextColumnButton(script) {
+  const next = nextUnselectedGroup(script, selectedFor(script));
+  if (!next) return "";
+  const sample = glyphsIn(next)[0];
+  const label = sample ? `${sample.kana} ${sample.romaji}` : next.title;
+  return `<button class="primary" id="add-next" type="button" data-next="${next.id}">Add ${label}</button>`;
+}
+
 function studyHtml(script) {
   const session = state.session;
   const selectedCount = cardsFor(script, selectedFor(script)).length;
-  const title = script === "hiragana" ? "Hiragana" : "Katakana";
   if (!session || session.status === "empty") {
     return `
       ${nav(script)}
-      <p class="lede">Tap columns to build a deck, then start. Missed cards come back as their own round until they stick.</p>
+      <p class="lede">Pick a few columns. Full deck, then only the misses, then the full deck again until a pass is clean. Add a column when that subset is down.</p>
       ${chartHtml(script)}
       <p class="hint">${selectedCount} in deck</p>
     `;
   }
-  if (session.status === "round-complete") {
+  if (session.status === "retry-ready") {
     return `
       ${nav(script)}
       ${statsBar(session)}
       <section class="interstitial">
-        <p class="kicker">Round ${session.round} done</p>
+        <p class="kicker">Pass ${session.pass}</p>
         <h1>${session.missed.length} to retry</h1>
-        <p>Same StudyBlue loop: only the ones you missed, shuffled again.</p>
+        <p>Only the ones you missed, shuffled. Repeat this pile until it is empty, then the whole deck comes back.</p>
         <button class="primary" id="retry">Retry missed</button>
       </section>
       ${state.chartOpen ? chartHtml(script) : ""}
     `;
   }
+  if (session.status === "pass-ready") {
+    return `
+      ${nav(script)}
+      ${statsBar(session)}
+      <section class="interstitial">
+        <p class="kicker">Misses cleared</p>
+        <h1>Full deck again</h1>
+        <p>This sitting is done when you get through the whole deck with zero misses.</p>
+        <button class="primary" id="next-pass">Whole deck</button>
+      </section>
+      ${state.chartOpen ? chartHtml(script) : ""}
+    `;
+  }
   if (session.status === "complete") {
+    const next = nextUnselectedGroup(script, selectedFor(script));
     return `
       ${nav(script)}
       ${statsBar(session)}
       <section class="interstitial">
         <p class="kicker">できた</p>
-        <h1>Deck clear</h1>
-        <p>${session.correctCount} correct across ${session.round} round${session.round === 1 ? "" : "s"}.</p>
-        <button class="primary" id="again">Study again</button>
+        <h1>Clean pass</h1>
+        <p>Pass ${session.pass} through ${session.deck.length} cards, no misses.${next ? " Add the next column when this subset feels easy." : " That is every column."}</p>
+        <div class="actions">
+          ${nextColumnButton(script)}
+          <button class="${next ? "secondary" : "primary"}" id="again" type="button">Same deck again</button>
+        </div>
       </section>
       ${chartHtml(script)}
     `;
@@ -286,7 +333,7 @@ function studyHtml(script) {
             : `<button class="primary" type="submit">Check</button>`
         }
       </form>
-      <p class="hint">${revealed ? (session.lastGrade === "incorrect" ? "Enter continues — this card returns in the retry round." : "1 knew · 2 missed · Enter continues as missed.") : "Enter checks · Space or tap flips without typing."}</p>
+      <p class="hint">${revealed ? (session.lastGrade === "incorrect" ? "Enter continues — this card returns in the retry pile." : "1 knew · 2 missed · Enter continues as missed.") : "Enter checks · Space or tap flips without typing."}</p>
       <div class="toolbar">
         <button class="text-btn" id="speak" type="button">Play sound</button>
         <button class="text-btn" id="toggle-chart" type="button">${state.chartOpen ? "Hide chart" : "Edit deck"}</button>
@@ -315,7 +362,7 @@ function homeHtml() {
     ${nav("home")}
     <section class="home">
       <p class="kicker">Kana drill</p>
-      <h1>Learn the characters, then retry the ones that slip.</h1>
+      <h1>Full deck, retry the misses, then the full deck until it is clean.</h1>
       <div class="tiles">
         <a class="tile" href="${hrefFor("hiragana")}">
           <span class="glyph">あ</span>
@@ -332,7 +379,7 @@ function homeHtml() {
           </span>
         </a>
       </div>
-      <p class="hint">Works offline after the first load. Progress stays on this device.</p>
+      <p class="hint">Start with a couple of columns. After a clean pass, add the next one. Works offline after the first load.</p>
     </section>
   `;
 }
@@ -383,13 +430,22 @@ function bindStudy(script) {
     render();
     focusAnswer();
   });
+  document.getElementById("next-pass")?.addEventListener("click", () => {
+    state.session = startNextPass(state.session);
+    render();
+    focusAnswer();
+  });
   document.getElementById("again")?.addEventListener("click", () => {
     startSession(script);
     render();
     focusAnswer();
   });
+  document.getElementById("add-next")?.addEventListener("click", (event) => {
+    const id = event.currentTarget.dataset.next;
+    if (id) addGroup(script, id);
+  });
   document.getElementById("toggle-chart")?.addEventListener("click", () => {
-    state.chartOpen = !state.chartOpen;
+    state.chartOpen = __omp_shell("state.chartOpen;")
     render();
   });
   document.getElementById("speak")?.addEventListener("click", () => {

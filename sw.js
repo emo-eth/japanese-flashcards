@@ -1,4 +1,4 @@
-const CACHE = "kana-v2";
+const CACHE = "kana-v3";
 const ASSETS = [
   "./",
   "./index.html",
