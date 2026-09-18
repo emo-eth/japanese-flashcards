@@ -4,14 +4,14 @@ Personal hiragana / katakana flashcard PWA. One study set per script, toggleable
 
 ## Use
 
-- Tap columns to include them in the deck (Basic / Voiced / Combo). New decks start with the あ / ア column.
-- Type romaji and press Enter to check. Space or tap flips the card and counts as a miss.
-- After a pass, only missed cards come back. When that pile is clear, the whole deck runs again. The sitting ends on a clean pass.
+- Pick columns on the chart page (Basic / Voiced / Combo). New decks start with the あ / ア column. Start (or press Enter) opens a study view with the chart hidden so answers cannot leak.
+- Type romaji. A full match flashes correct and advances — no Enter, no submit. A wrong prefix (or Space / tap on an empty field) reveals the answer as a miss and waits so you can look; Space or tap continues.
+- After a pass, only missed cards come back. When that pile is clear, the whole deck runs again. The sitting ends on a clean pass. Space / Enter also drives the between-pile screens.
 - After a clean pass, add the next column or run the same deck again. Columns that have had a clean pass get a gold mark.
 - Column choices and clean-pass marks stay in localStorage on the device.
 - After the first load, a service worker keeps the app usable offline.
 
-Session stats stay small: remaining in the current pile, misses on this full-deck pass, pass number, and whether you are on the deck or a retry pile. Per-card counts are stored but not shown yet.
+Session stats stay small: remaining in the current pile, misses on this full-deck pass, pass number, and whether you are on the deck or a retry pile. Per-card counts are stored but not shown yet. Misses speak the kana when the browser allows it.
 
 ## Local
 

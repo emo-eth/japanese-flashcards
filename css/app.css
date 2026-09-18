@@ -63,6 +63,8 @@ body {
   border: 0;
   color: var(--gold);
   padding: 0.35rem 0.2rem;
+  font: inherit;
+  cursor: pointer;
 }
 .install { margin-left: auto; }
 
@@ -108,6 +110,9 @@ h1 { font-weight: 560; font-size: clamp(1.8rem, 4vw, 2.8rem); margin: 0 0 1rem; 
 }
 .stats .label { display: block; color: var(--muted); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; }
 .stats strong { font-size: 1.25rem; }
+.stats.slim { margin-bottom: 0.9rem; }
+.stats.slim div { padding: 0.45rem 0.7rem; }
+.stats.slim strong { font-size: 1.05rem; }
 
 .study { display: grid; justify-items: center; gap: 1rem; margin-bottom: 2rem; }
 .card {
@@ -119,6 +124,8 @@ h1 { font-weight: 560; font-size: clamp(1.8rem, 4vw, 2.8rem); margin: 0 0 1rem; 
   padding: 0;
   color: inherit;
   position: relative;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .card .face {
   position: absolute;
@@ -137,14 +144,18 @@ h1 { font-weight: 560; font-size: clamp(1.8rem, 4vw, 2.8rem); margin: 0 0 1rem; 
 .card.revealed .front { transform: rotateY(-180deg); }
 .card.revealed .back { transform: rotateY(0deg); }
 .card.miss .back { border-color: rgba(209, 106, 99, 0.45); }
+.card.hit .back { border-color: rgba(127, 157, 110, 0.65); }
+.card.hit .kana { color: var(--moss); }
 .kana { font-family: var(--serif); font-size: clamp(5.5rem, 18vw, 8rem); line-height: 1; }
 .kana.small { font-size: 3.2rem; }
 .roma { font-family: var(--mono); font-size: 2rem; color: var(--gold); }
 .guess { color: var(--miss); font-size: 0.95rem; }
+.guess.ok { color: var(--moss); }
 
 .answer-row, .grade-btns { width: min(100%, 420px); display: flex; gap: 0.6rem; }
 #answer {
   flex: 1;
+  width: min(100%, 420px);
   background: var(--bg-2);
   border: 1px solid var(--line);
   border-radius: 0.9rem;
@@ -153,6 +164,19 @@ h1 { font-weight: 560; font-size: clamp(1.8rem, 4vw, 2.8rem); margin: 0 0 1rem; 
   font-size: 1.15rem;
   padding: 0.85rem 1rem;
 }
+.start-bar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 0 0.4rem;
+  background: linear-gradient(transparent, var(--bg) 28%);
+}
+.start-bar span { color: var(--muted); }
+.top a.text-btn { margin-left: auto; text-decoration: none; }
+a.secondary { text-decoration: none; display: inline-block; }
 .primary, .good, .bad {
   border: 0;
   border-radius: 0.9rem;

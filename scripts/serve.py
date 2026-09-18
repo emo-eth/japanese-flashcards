@@ -54,7 +54,7 @@ class Handler(SimpleHTTPRequestHandler):
         self.path = path
         fs_path = ROOT / path.lstrip("/")
         if path != "/" and fs_path.is_file():
-            if path in {"/index.html", "/sw.js"}:
+            if path in {"/index.html", "/sw.js"} or path.endswith((".js", ".css", ".webmanifest")):
                 self.send_file(fs_path, cache="no-cache")
                 return
             return SimpleHTTPRequestHandler.do_GET(self)

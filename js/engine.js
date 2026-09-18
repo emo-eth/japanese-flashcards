@@ -45,6 +45,21 @@ export function gradeInput(input, romaji) {
   return acceptedAnswers(romaji).has(typed);
 }
 
+/**
+ * Grade as the learner types.
+ * wait: still a prefix of an accepted answer (shi waits through "s" and "sh")
+ * correct: exact match of an accepted spelling
+ * incorrect: cannot become any accepted spelling
+ */
+export function liveGrade(input, romaji) {
+  const typed = normalizeRomaji(input);
+  if (!typed) return "wait";
+  const answers = [...acceptedAnswers(romaji)];
+  if (answers.some((a) => a === typed)) return "correct";
+  if (answers.some((a) => a.startsWith(typed))) return "wait";
+  return "incorrect";
+}
+
 export function shuffle(items, rng = Math.random) {
   const next = items.slice();
   for (let i = next.length - 1; i > 0; i--) {

@@ -6,6 +6,7 @@ import {
   createSession,
   currentCard,
   gradeInput,
+  liveGrade,
   markKnown,
   normalizeRomaji,
   remainingCount,
@@ -35,6 +36,19 @@ describe("romaji grading", () => {
     expect(gradeInput("ka", "ki")).toBe(false);
     expect(gradeInput("", "a")).toBe(false);
     expect(acceptedAnswers("shi").has("shi")).toBe(true);
+  });
+  test("live grade waits on prefixes, hits exact, misses dead ends", () => {
+    expect(liveGrade("", "shi")).toBe("wait");
+    expect(liveGrade("s", "shi")).toBe("wait");
+    expect(liveGrade("sh", "shi")).toBe("wait");
+    expect(liveGrade("shi", "shi")).toBe("correct");
+    expect(liveGrade("si", "shi")).toBe("correct");
+    expect(liveGrade("sa", "shi")).toBe("incorrect");
+    expect(liveGrade("a", "a")).toBe("correct");
+    expect(liveGrade("k", "ka")).toBe("wait");
+    expect(liveGrade("ki", "ka")).toBe("incorrect");
+    expect(liveGrade("n", "n")).toBe("correct");
+    expect(liveGrade("n", "na")).toBe("wait");
   });
 });
 
