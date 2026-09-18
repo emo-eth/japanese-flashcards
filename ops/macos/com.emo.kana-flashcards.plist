@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.emo.kana-flashcards</string>
+  <key>WorkingDirectory</key>
+  <string>/Users/emo/dev/japanese-flashcards</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>PYTHON3</string>
+    <string>/Users/emo/dev/japanese-flashcards/scripts/serve.py</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOST</key>
+    <string>127.0.0.1</string>
+    <key>PORT</key>
+    <string>8877</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>StandardOutPath</key>
+  <string>/Users/emo/Library/Logs/kana-flashcards.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/emo/Library/Logs/kana-flashcards.log</string>
+</dict>
+</plist>

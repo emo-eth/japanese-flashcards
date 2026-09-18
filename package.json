@@ -1,0 +1,9 @@
+{
+  "name": "kana-flashcards",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "python3 scripts/serve.py",
+    "test": "bun test"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "Kana",
+  "short_name": "Kana",
+  "description": "Hiragana and katakana flashcards",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#100e0c",
+  "theme_color": "#100e0c",
+  "icons": [
+    { "src": "./icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" },
+    { "src": "./icons/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}
