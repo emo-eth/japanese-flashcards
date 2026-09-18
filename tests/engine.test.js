@@ -9,6 +9,7 @@ import {
   markKnown,
   normalizeRomaji,
   remainingCount,
+  reveal,
   startNextPass,
   startNextRound,
   submitTyped,
@@ -118,5 +119,17 @@ describe("college study loop", () => {
     expect(session.retryRound).toBe(2);
     session = markKnown(session);
     expect(session.status).toBe("pass-ready");
+  });
+
+
+  test("flipping a card counts as a miss", () => {
+    let session = createSession(cards, { rng: () => 0 });
+    const first = currentCard(session);
+    session = reveal(session);
+    expect(session.revealed).toBe(true);
+    expect(session.lastGrade).toBe("incorrect");
+    session = confirmMiss(session);
+    expect(session.missed.map((c) => c.id)).toEqual([first.id]);
+    expect(session.passMisses).toBe(1);
   });
 });

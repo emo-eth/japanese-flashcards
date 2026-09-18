@@ -5,7 +5,7 @@ Personal hiragana / katakana flashcard PWA. One study set per script, toggleable
 ## Use
 
 - Tap columns to include them in the deck (Basic / Voiced / Combo). New decks start with the あ / ア column.
-- Type romaji and press Enter, or tap / Space to flip and self-grade.
+- Type romaji and press Enter to check. Space or tap flips the card and counts as a miss.
 - After a pass, only missed cards come back. When that pile is clear, the whole deck runs again. The sitting ends on a clean pass.
 - After a clean pass, add the next column or run the same deck again. Columns that have had a clean pass get a gold mark.
 - Column choices and clean-pass marks stay in localStorage on the device.

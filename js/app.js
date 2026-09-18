@@ -3,7 +3,6 @@ import {
   confirmMiss,
   createSession,
   currentCard,
-  markKnown,
   reveal,
   startNextPass,
   startNextRound,
@@ -171,11 +170,6 @@ function onKeydown(event) {
     }
     return;
   }
-  if (session.revealed && (event.key === "1" || event.key === "k" || event.key === "K")) {
-    event.preventDefault();
-    applySession(markKnown(session), "correct");
-    focusAnswer();
-  }
   if (session.revealed && (event.key === "2" || event.key === "m" || event.key === "M")) {
     event.preventDefault();
     applySession(confirmMiss(session), "incorrect");
@@ -324,16 +318,11 @@ function studyHtml(script) {
         <input id="answer" name="answer" inputmode="latin" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="type romaji" value="${escapeHtml(state.input)}" ${revealed ? "disabled" : ""} />
         ${
           revealed
-            ? session.lastGrade === "incorrect"
-              ? `<button class="bad" id="missed" type="button">Continue</button>`
-              : `<div class="grade-btns">
-                <button type="button" class="good" id="knew">Knew · 1</button>
-                <button type="button" class="bad" id="missed">Missed · 2</button>
-              </div>`
+            ? `<button class="bad" id="missed" type="button">Continue</button>`
             : `<button class="primary" type="submit">Check</button>`
         }
       </form>
-      <p class="hint">${revealed ? (session.lastGrade === "incorrect" ? "Enter continues — this card returns in the retry pile." : "1 knew · 2 missed · Enter continues as missed.") : "Enter checks · Space or tap flips without typing."}</p>
+      <p class="hint">${revealed ? "Enter continues — this card returns in the retry pile." : "Enter checks · Space or tap flips as a miss."}</p>
       <div class="toolbar">
         <button class="text-btn" id="speak" type="button">Play sound</button>
         <button class="text-btn" id="toggle-chart" type="button">${state.chartOpen ? "Hide chart" : "Edit deck"}</button>
@@ -417,10 +406,6 @@ function bindStudy(script) {
   document.getElementById("flip")?.addEventListener("click", () => {
     if (!state.session.revealed) applySession(reveal(state.session, state.input));
   });
-  document.getElementById("knew")?.addEventListener("click", () => {
-    applySession(markKnown(state.session), "correct");
-    focusAnswer();
-  });
   document.getElementById("missed")?.addEventListener("click", () => {
     applySession(confirmMiss(state.session), "incorrect");
     focusAnswer();
@@ -445,7 +430,7 @@ function bindStudy(script) {
     if (id) addGroup(script, id);
   });
   document.getElementById("toggle-chart")?.addEventListener("click", () => {
-    state.chartOpen = __omp_shell("state.chartOpen;")
+    state.chartOpen = !state.chartOpen;
     render();
   });
   document.getElementById("speak")?.addEventListener("click", () => {

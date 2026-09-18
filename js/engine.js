@@ -112,7 +112,7 @@ export function reveal(session, guess = "") {
     ...session,
     revealed: true,
     typedGuess: guess,
-    lastGrade: null,
+    lastGrade: "incorrect",
   };
 }
 
