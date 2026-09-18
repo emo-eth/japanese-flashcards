@@ -12,7 +12,6 @@
   --card: #221c17;
   --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
   --sans: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", ui-sans-serif, system-ui, sans-serif;
-  --serif: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", "Songti SC", serif;
   --mono: "SF Mono", ui-monospace, Menlo, monospace;
 }
 
@@ -41,7 +40,7 @@ body {
   margin-bottom: 1.5rem;
 }
 .brand {
-  font-family: var(--serif);
+  font-family: var(--sans);
   font-size: 1.6rem;
   color: var(--ink);
   text-decoration: none;
@@ -92,7 +91,7 @@ h1 { font-weight: 560; font-size: clamp(1.8rem, 4vw, 2.8rem); margin: 0 0 1rem; 
   text-decoration: none;
   box-shadow: var(--shadow);
 }
-.tile .glyph { font-family: var(--serif); font-size: 3rem; color: var(--gold); }
+.tile .glyph { font-family: var(--sans); font-size: 3rem; color: var(--gold); }
 .tile strong { display: block; font-size: 1.15rem; }
 .tile em { color: var(--muted); font-style: normal; }
 
@@ -146,7 +145,7 @@ h1 { font-weight: 560; font-size: clamp(1.8rem, 4vw, 2.8rem); margin: 0 0 1rem; 
 .card.miss .back { border-color: rgba(209, 106, 99, 0.45); }
 .card.hit .back { border-color: rgba(127, 157, 110, 0.65); }
 .card.hit .kana { color: var(--moss); }
-.kana { font-family: var(--serif); font-size: clamp(5.5rem, 18vw, 8rem); line-height: 1; }
+.kana { font-family: var(--sans); font-size: clamp(5.5rem, 18vw, 8rem); line-height: 1; font-weight: 400; }
 .kana.small { font-size: 3.2rem; }
 .roma { font-family: var(--mono); font-size: 2rem; color: var(--gold); }
 .guess { color: var(--miss); font-size: 0.95rem; }
@@ -233,7 +232,7 @@ a.secondary { text-decoration: none; display: inline-block; }
 .col.on { border-color: var(--vermillion); background: rgba(225, 91, 58, 0.12); }
 .col.cleared { box-shadow: inset 0 2px 0 var(--gold); }
 .cell { display: grid; justify-items: center; min-height: 3.1rem; }
-.cell b { font-family: var(--serif); font-size: 1.35rem; font-weight: 500; }
+.cell b { font-family: var(--sans); font-size: 1.35rem; font-weight: 500; }
 .cell i { font-style: normal; color: var(--muted); font-size: 0.72rem; }
 .cell.gap { color: transparent; }
 

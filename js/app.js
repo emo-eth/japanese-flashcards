@@ -13,7 +13,7 @@ import { clearedGroups, loadGroups, recordCleanPass, recordResult, saveGroups } 
 
 const app = document.getElementById("app");
 const INSTALL = { deferred: null };
-const FLASH_MS = 420;
+const FLASH_MS = 1100;
 
 function basePath() {
   const path = location.pathname;
