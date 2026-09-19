@@ -337,12 +337,12 @@ function pileLabel(session) {
 
 function statsBar(session) {
   return `
-    <div class="stats slim study">
-      <div><span class="label">Left</span><strong>${session.queue.length}</strong></div>
-      <div><span class="label">Missed</span><strong>${session.passMisses}</strong></div>
-      <div><span class="label">Pass</span><strong>${session.pass}</strong></div>
-      <div><span class="label">Pile</span><strong>${pileLabel(session)}</strong></div>
-    </div>
+    <p class="study-tick" aria-live="polite">
+      <span><strong>${session.queue.length}</strong> left</span>
+      <span><strong>${session.passMisses}</strong> missed</span>
+      <span>pass <strong>${session.pass}</strong></span>
+      <span>${pileLabel(session)}</span>
+    </p>
   `;
 }
 

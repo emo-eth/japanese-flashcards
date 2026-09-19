@@ -301,16 +301,26 @@ html.study-mode body {
 }
 
 #shell.study-mode .top { margin-bottom: 0.4rem; flex: 0 0 auto; }
-#shell.study-mode .stats.study {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.35rem;
-  margin-bottom: 0.45rem;
+.study-tick {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.55rem;
+  margin: 0 0 0.55rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  white-space: nowrap;
   flex: 0 0 auto;
 }
-#shell.study-mode .stats.study div { padding: 0.28rem 0.15rem; text-align: center; }
-#shell.study-mode .stats.study .label { font-size: 0.62rem; white-space: nowrap; }
-#shell.study-mode .stats.study strong { font-size: 0.95rem; }
+.study-tick strong {
+  color: var(--ink);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+#shell.study-mode .study-tick {
+  margin: 0 0 0.3rem;
+  font-size: 0.8rem;
+}
 
 #shell.study-mode .study {
   display: flex;
@@ -358,6 +368,11 @@ html.study-mode body {
   min-height: 3rem;
 }
 
-html.kb-open #shell.study-mode .stats.study { display: none; }
-html.kb-open #shell.study-mode .top { margin-bottom: 0.2rem; }
+html.kb-open #shell.study-mode .top { margin-bottom: 0.15rem; }
 html.kb-open #shell.study-mode .hint { display: none; }
+html.kb-open #shell.study-mode .study-tick {
+  margin-bottom: 0.18rem;
+  padding-bottom: 0.18rem;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.78rem;
+}
