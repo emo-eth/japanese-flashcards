@@ -17,6 +17,7 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; min-height: 100%; }
+html { -webkit-text-size-adjust: 100%; }
 body {
   font-family: var(--sans);
   background:
@@ -248,3 +249,115 @@ a.secondary { text-decoration: none; display: inline-block; }
 @media (display-mode: standalone) {
   .install { display: none !important; }
 }
+
+
+#shell { min-height: 100%; }
+#answer-dock-root {
+  display: none;
+  width: min(100%, 420px);
+  margin: 0 auto;
+}
+#answer-dock-root[hidden] { display: none !important; }
+
+html.study-mode,
+html.study-mode body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+#shell.study-mode {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  min-height: 0;
+  height: var(--kbv-height, 100dvh);
+  transform: translateY(var(--kbv-offset, 0px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: max(0.5rem, env(safe-area-inset-top)) 1rem max(0.55rem, env(safe-area-inset-bottom));
+  background: var(--bg);
+}
+
+#shell.study-mode #app {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.study-screen {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+#shell.study-mode .top { margin-bottom: 0.4rem; flex: 0 0 auto; }
+#shell.study-mode .stats.study {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin-bottom: 0.45rem;
+  flex: 0 0 auto;
+}
+#shell.study-mode .stats.study div { padding: 0.28rem 0.15rem; text-align: center; }
+#shell.study-mode .stats.study .label { font-size: 0.62rem; white-space: nowrap; }
+#shell.study-mode .stats.study strong { font-size: 0.95rem; }
+
+#shell.study-mode .study {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: stretch;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 0.55rem;
+  margin: 0;
+  width: 100%;
+}
+
+#shell.study-mode .card {
+  flex: 1 1 auto;
+  width: min(100%, 420px);
+  height: auto;
+  min-height: 7.5rem;
+  touch-action: manipulation;
+  container-type: size;
+}
+
+#shell.study-mode .kana {
+  font-size: clamp(3.4rem, 48cqmin, 7.2rem);
+}
+#shell.study-mode .kana.small {
+  font-size: clamp(2.1rem, 28cqmin, 3.2rem);
+}
+
+#shell.study-mode.show-answer #answer-dock-root {
+  display: block;
+  flex: 0 0 auto;
+  width: min(100%, 420px);
+}
+
+#shell.study-mode .interstitial {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+#shell.study-mode #answer {
+  width: 100%;
+  font-size: 16px;
+  min-height: 3rem;
+}
+
+html.kb-open #shell.study-mode .stats.study { display: none; }
+html.kb-open #shell.study-mode .top { margin-bottom: 0.2rem; }
+html.kb-open #shell.study-mode .hint { display: none; }

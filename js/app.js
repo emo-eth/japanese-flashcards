@@ -11,10 +11,14 @@ import {
 } from "./engine.js";
 import { hrefFor, parseRoute } from "./route.js";
 import { clearedGroups, loadGroups, recordCleanPass, recordResult, saveGroups } from "./storage.js";
+import { observeKeyboardViewport } from "./viewport.js";
 
 const app = document.getElementById("app");
+const shell = document.getElementById("shell");
+const dock = document.getElementById("answer-dock-root");
 const INSTALL = { deferred: null };
 const FLASH_MS = 1100;
+let answerEl = null;
 
 const state = {
   script: "home",
@@ -246,10 +250,84 @@ function onKeydown(event) {
 }
 
 function focusAnswer() {
-  requestAnimationFrame(() => {
-    const el = document.getElementById("answer");
-    if (el && !el.disabled) el.focus();
+  const el = ensureAnswer();
+  if (!el.isConnected || el.readOnly) return;
+  el.focus({ preventScroll: true });
+  window.scrollTo(0, 0);
+}
+
+function ensureAnswer() {
+  if (answerEl) return answerEl;
+  const input = document.createElement("input");
+  input.id = "answer";
+  input.name = "answer";
+  input.type = "text";
+  input.inputMode = "text";
+  input.enterKeyHint = "done";
+  input.lang = "en";
+  input.autocapitalize = "none";
+  input.autocomplete = "off";
+  input.spellcheck = false;
+  input.setAttribute("autocorrect", "off");
+  input.setAttribute("aria-label", "Type romaji");
+  input.placeholder = "romaji";
+  input.addEventListener("compositionstart", () => {
+    state.composing = true;
   });
+  input.addEventListener("compositionend", (event) => {
+    state.composing = false;
+    onTyped(event.target.value);
+  });
+  input.addEventListener("input", () => {
+    if (state.composing) return;
+    onTyped(input.value);
+  });
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") event.preventDefault();
+  });
+  input.addEventListener("focus", () => {
+    window.scrollTo(0, 0);
+  });
+  input.addEventListener(
+    "touchstart",
+    () => {
+      input.focus({ preventScroll: true });
+    },
+    { passive: true }
+  );
+  answerEl = input;
+  dock.appendChild(input);
+  return input;
+}
+
+function syncStudyFrame(on) {
+  document.documentElement.classList.toggle("study-mode", on);
+  document.body.classList.toggle("study-mode", on);
+  shell.classList.toggle("study-mode", on);
+}
+
+function mountAnswer() {
+  const session = state.session;
+  const active = state.view === "study" && session?.status === "active";
+  dock.hidden = !active;
+  shell.classList.toggle("show-answer", active);
+  if (!active) return;
+  const input = ensureAnswer();
+  const hit = state.flash === "correct";
+  const revealed = Boolean(session.revealed);
+  // Keep the field editable during the correct flash so iOS does not drop the keyboard.
+  input.readOnly = revealed && !hit;
+  if (hit) {
+    input.value = "";
+    input.placeholder = "correct";
+  } else if (revealed && session.typedGuess) {
+    input.value = session.typedGuess;
+    input.placeholder = "romaji";
+  } else {
+    input.value = state.input;
+    input.placeholder = "romaji";
+  }
+  if (!input.readOnly) focusAnswer();
 }
 
 function pileLabel(session) {
@@ -259,7 +337,7 @@ function pileLabel(session) {
 
 function statsBar(session) {
   return `
-    <div class="stats slim">
+    <div class="stats slim study">
       <div><span class="label">Left</span><strong>${session.queue.length}</strong></div>
       <div><span class="label">Missed</span><strong>${session.passMisses}</strong></div>
       <div><span class="label">Pass</span><strong>${session.pass}</strong></div>
@@ -353,9 +431,10 @@ function studyHtml(script) {
   const session = state.session;
   if (!session || session.status === "empty") return setupHtml(script);
 
+  const frame = (inner) => `<div class="study-screen">${nav(script, "study")}${inner}</div>`;
+
   if (session.status === "retry-ready") {
-    return `
-      ${nav(script, "study")}
+    return frame(`
       ${statsBar(session)}
       <section class="interstitial">
         <p class="kicker">Pass ${session.pass}</p>
@@ -366,11 +445,10 @@ function studyHtml(script) {
           <a class="secondary" href="${hrefFor(script)}">Rearrange deck</a>
         </div>
       </section>
-    `;
+    `);
   }
   if (session.status === "pass-ready") {
-    return `
-      ${nav(script, "study")}
+    return frame(`
       ${statsBar(session)}
       <section class="interstitial">
         <p class="kicker">Misses cleared</p>
@@ -381,12 +459,11 @@ function studyHtml(script) {
           <a class="secondary" href="${hrefFor(script)}">Rearrange deck</a>
         </div>
       </section>
-    `;
+    `);
   }
   if (session.status === "complete") {
     const next = nextUnselectedGroup(script, selectedFor(script));
-    return `
-      ${nav(script, "study")}
+    return frame(`
       ${statsBar(session)}
       <section class="interstitial">
         <p class="kicker">できた</p>
@@ -398,15 +475,14 @@ function studyHtml(script) {
           <a class="secondary" href="${hrefFor(script)}">Rearrange deck</a>
         </div>
       </section>
-    `;
+    `);
   }
 
   const card = currentCard(session);
   const revealed = session.revealed || state.flash === "correct";
   const hit = state.flash === "correct";
   const miss = revealed && !hit;
-  return `
-    ${nav(script, "study")}
+  return frame(`
     ${statsBar(session)}
     <section class="study">
       <button class="card ${revealed ? "revealed" : ""} ${miss ? "miss" : ""} ${hit ? "hit" : ""}" id="flip" type="button" aria-label="${revealed ? "Continue" : "Show answer as a miss"}">
@@ -423,14 +499,12 @@ function studyHtml(script) {
         </span>
       </button>
       ${
-        revealed
-          ? hit
-            ? `<p class="hint">next…</p>`
-            : `<p class="hint">Space or tap to continue — this card returns in the retry pile.</p>`
-          : `<input id="answer" name="answer" inputmode="latin" lang="en" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="romaji" value="${escapeHtml(state.input)}" aria-label="Type romaji" />`
+        revealed && !hit
+          ? `<p class="hint">Space or tap to continue — this card returns in the retry pile.</p>`
+          : ""
       }
     </section>
-  `;
+  `);
 }
 
 function homeHtml() {
@@ -479,23 +553,6 @@ function bindSetup(script) {
 }
 
 function bindStudy(script) {
-  const input = document.getElementById("answer");
-  if (input) {
-    input.addEventListener("compositionstart", () => {
-      state.composing = true;
-    });
-    input.addEventListener("compositionend", (event) => {
-      state.composing = false;
-      onTyped(event.target.value);
-    });
-    input.addEventListener("input", () => {
-      if (state.composing) return;
-      onTyped(input.value);
-    });
-    input.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") event.preventDefault();
-    });
-  }
   document.getElementById("flip")?.addEventListener("click", () => {
     const session = state.session;
     if (!session || session.status !== "active") return;
@@ -550,20 +607,14 @@ function render() {
   const route = parseRoute();
   state.script = route.script;
   state.view = route.view;
+  syncStudyFrame(route.view === "study");
   if (route.script === "home") app.innerHTML = homeHtml();
   else if (route.view === "setup") app.innerHTML = setupHtml(route.script);
   else app.innerHTML = studyHtml(route.script);
   bindChrome();
   if (route.script !== "home" && route.view === "setup") bindSetup(route.script);
   if (route.script !== "home" && route.view === "study") bindStudy(route.script);
-  if (
-    route.view === "study" &&
-    state.session?.status === "active" &&
-    state.session.revealed === false &&
-    state.advancing === false
-  ) {
-    focusAnswer();
-  }
+  mountAnswer();
 }
 
 function boot() {
@@ -598,6 +649,7 @@ function boot() {
     INSTALL.deferred = event;
     render();
   });
+  observeKeyboardViewport();
   render();
 }
 
