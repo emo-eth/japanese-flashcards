@@ -1,4 +1,4 @@
-const CACHE = "kana-v8";
+const CACHE = "kana-v9";
 const ASSETS = [
   "./",
   "./index.html",
@@ -6,6 +6,7 @@ const ASSETS = [
   "./js/app.js",
   "./js/engine.js",
   "./js/kana.js",
+  "./js/route.js",
   "./js/storage.js",
   "./manifest.webmanifest",
   "./icons/icon.svg",

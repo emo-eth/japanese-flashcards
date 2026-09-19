@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Loopback static server with SPA fallback and /kana prefix stripping."""
+"""Loopback static server with SPA fallback and prefix stripping."""
 
 from __future__ import annotations
 
@@ -18,13 +18,19 @@ mimetypes.add_type("text/javascript", ".js")
 mimetypes.add_type("image/svg+xml", ".svg")
 
 
+PREFIXES = ("/kana", "/japanese-flashcards")
+
+
 def normalize(path: str) -> str:
     parsed = urlparse(path)
     raw = unquote(parsed.path)
-    if raw.startswith("/kana/"):
-        raw = raw[5:] or "/"
-    elif raw == "/kana":
-        raw = "/"
+    for prefix in PREFIXES:
+        if raw == prefix:
+            raw = "/"
+            break
+        if raw.startswith(prefix + "/"):
+            raw = raw[len(prefix) :] or "/"
+            break
     raw = os.path.normpath(raw)
     if raw == ".":
         raw = "/"

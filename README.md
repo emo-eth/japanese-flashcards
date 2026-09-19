@@ -13,6 +13,12 @@ Personal hiragana / katakana flashcard PWA. One study set per script, toggleable
 
 Session stats stay small: remaining in the current pile, misses on this full-deck pass, pass number, and whether you are on the deck or a retry pile. Per-card counts are stored but not shown yet. Misses speak the kana when the browser allows it.
 
+## Public
+
+https://emo-eth.github.io/japanese-flashcards/
+
+GitHub Pages. Progress stays in localStorage on each device, so two people can share the URL without sharing a deck.
+
 ## Local
 
 ```sh

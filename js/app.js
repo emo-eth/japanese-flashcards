@@ -9,33 +9,12 @@ import {
   startNextPass,
   startNextRound,
 } from "./engine.js";
+import { hrefFor, parseRoute } from "./route.js";
 import { clearedGroups, loadGroups, recordCleanPass, recordResult, saveGroups } from "./storage.js";
 
 const app = document.getElementById("app");
 const INSTALL = { deferred: null };
 const FLASH_MS = 1100;
-
-function basePath() {
-  const path = location.pathname;
-  if (path === "/kana" || path.startsWith("/kana/")) return "/kana";
-  return "";
-}
-
-function parseRoute() {
-  const raw = location.pathname.replace(/^\/kana\/?/, "/") || "/";
-  const parts = raw.replace(/\/+$/, "").split("/").filter(Boolean);
-  const script = parts[0] === "hiragana" || parts[0] === "katakana" ? parts[0] : "home";
-  if (script === "home") return { script: "home", view: "home" };
-  const view = parts[1] === "study" ? "study" : "setup";
-  return { script, view };
-}
-
-function hrefFor(script, view = "setup") {
-  const base = basePath();
-  if (script === "home") return `${base}/` || "/";
-  if (view === "study") return `${base}/${script}/study`;
-  return `${base}/${script}`;
-}
 
 const state = {
   script: "home",
@@ -551,11 +530,8 @@ function bindChrome() {
     if (url.origin !== location.origin) return;
     link.addEventListener("click", (event) => {
       event.preventDefault();
-      const path = url.pathname.replace(/^\/kana\/?/, "/") || "/";
-      const parts = path.replace(/\/+$/, "").split("/").filter(Boolean);
-      const script = parts[0] === "hiragana" || parts[0] === "katakana" ? parts[0] : "home";
-      const view = parts[1] === "study" ? "study" : script === "home" ? "home" : "setup";
-      go(script, view);
+      const route = parseRoute(url.pathname);
+      go(route.script, route.view);
     });
   });
   const install = document.getElementById("install");
